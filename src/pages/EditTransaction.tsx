@@ -1,259 +1,176 @@
-// src/pages/EditTransaction.tsx
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  Utensils,
-  Briefcase,
-  CreditCard,
-  TrainFront,
-  ShoppingBag,
-  HelpCircle,
-  ArrowDownCircle,
-  ArrowUpCircle,
-} from "lucide-react";
-import clsx from "clsx";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
+import { NumericFormat } from "react-number-format";
 
-const categoryIcons = [
-  { id: "food", label: "Food", icon: <Utensils className="w-5 h-5" /> },
-  { id: "salary", label: "Salary", icon: <Briefcase className="w-5 h-5" /> },
-  { id: "subscription", label: "Subscription", icon: <CreditCard className="w-5 h-5" /> },
-  { id: "transport", label: "Transport", icon: <TrainFront className="w-5 h-5" /> },
-  { id: "shopping", label: "Shopping", icon: <ShoppingBag className="w-5 h-5" /> },
-  { id: "uncategorized", label: "Other", icon: <HelpCircle className="w-5 h-5" /> },
-];
-
-interface Transaction {
+type Transaction = {
   id: string;
   title: string;
   subtitle: string;
   amount: number;
+  type: "income" | "expense";
   date: string;
   category: string;
-  type: "income" | "expense";
-  icon?: string;
-}
+};
 
-const EditTransaction = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+type Props = {
+  transaction: Transaction;
+  onClose: () => void;
+  onSave: (tx: Transaction) => void;
+  onDelete: (id: string) => void;
+};
 
-  const [form, setForm] = useState<Transaction | null>(null);
-  const [loading, setLoading] = useState(true);
+const categories = [
+  { label: "Food", value: "food" },
+  { label: "Salary", value: "salary" },
+  { label: "Subscription", value: "subscription" },
+  { label: "Transport", value: "transport" },
+  { label: "Shopping", value: "shopping" },
+  { label: "Uncategorized", value: "uncategorized" },
+];
 
-  useEffect(() => {
-    if (!id) return;
+const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
+  const [form, setForm] = useState<Transaction>(transaction);
 
-    const stored = localStorage.getItem("transactions");
-    if (!stored) return;
-
-    const transactions: Transaction[] = JSON.parse(stored);
-    const transaction = transactions.find((t) => t.id === id);
-    if (transaction) {
-      setForm(transaction);
-    }
-    setLoading(false);
-  }, [id]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    if (!form) return;
-    const { name, value } = e.target;
-    setForm({
-      ...form,
-      [name]: name === "amount" ? Number(value) : value,
-    });
-  };
-
-  const handleTypeChange = (newType: "income" | "expense") => {
-    if (!form) return;
-    setForm({ ...form, type: newType });
-  };
-
-  const handleCategoryChange = (catId: string) => {
-    if (!form) return;
-    setForm({ ...form, category: catId });
+  const handleChange = (field: keyof Transaction, value: string | number) => {
+    setForm({ ...form, [field]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form) return;
-
-    if (!form.title.trim()) {
-      alert("Judul harus diisi");
-      return;
-    }
-    if (form.amount <= 0) {
-      alert("Nominal harus lebih dari 0");
-      return;
-    }
-    if (!form.date) {
-      alert("Tanggal harus diisi");
-      return;
-    }
-
-    const stored = localStorage.getItem("transactions");
-    const transactions: Transaction[] = stored ? JSON.parse(stored) : [];
-
-    const updated = transactions.map((t) => (t.id === form.id ? form : t));
-    localStorage.setItem("transactions", JSON.stringify(updated));
-    alert("Transaksi berhasil diperbarui");
-    navigate("/");
+    onSave(form);
   };
 
   const handleDelete = () => {
-    if (!form) return;
-
-    if (!window.confirm("Yakin ingin menghapus transaksi ini?")) return;
-
-    const stored = localStorage.getItem("transactions");
-    const transactions: Transaction[] = stored ? JSON.parse(stored) : [];
-
-    const updated = transactions.filter((t) => t.id !== form.id);
-    localStorage.setItem("transactions", JSON.stringify(updated));
-    alert("Transaksi berhasil dihapus");
-    navigate("/");
+    Swal.fire({
+      title: "Yakin ingin menghapus transaksi ini?",
+      text: "Data yang dihapus tidak bisa dikembalikan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        onDelete(form.id);
+        Swal.fire("Terhapus!", "Transaksi sudah dihapus.", "success");
+        onClose();
+      }
+    });
   };
 
-  if (loading) return <p className="p-4">Memuat data...</p>;
-  if (!form) return <p className="p-4">Transaksi tidak ditemukan</p>;
-
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-6 pb-28 max-w-md mx-auto">
-      {/* Tombol kembali icon */}
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-4 text-blue-600 hover:text-blue-800 flex items-center"
-        aria-label="Kembali"
-        type="button"
-      >
-        <ArrowLeft size={24} />
-      </button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-lg space-y-4">
+        <h2 className="text-lg font-bold">Edit Transaksi</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            className="w-full px-3 py-2 border rounded dark:bg-gray-700"
+            value={form.title}
+            onChange={(e) => handleChange("title", e.target.value)}
+            placeholder="Judul"
+            required
+          />
+          <input
+            className="w-full px-3 py-2 border rounded dark:bg-gray-700"
+            value={form.subtitle}
+            onChange={(e) => handleChange("subtitle", e.target.value)}
+            placeholder="Deskripsi"
+          />
+          <NumericFormat
+            thousandSeparator="."
+            decimalSeparator=","
+            decimalScale={0}
+            allowNegative={false}
+            className="w-full px-3 py-2 border rounded dark:bg-gray-700"
+            value={form.amount}
+            onValueChange={(values) => {
+              handleChange("amount", Number(values.value));
+            }}
+            placeholder="Jumlah"
+            required
+          />
+          <input
+            className="w-full px-3 py-2 border rounded dark:bg-gray-700"
+            type="date"
+            value={form.date}
+            onChange={(e) => handleChange("date", e.target.value)}
+            required
+          />
 
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Edit Transaksi</h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="title"
-          placeholder="Judul"
-          value={form.title}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800"
-          required
-        />
-
-        <input
-          type="text"
-          name="subtitle"
-          placeholder="Deskripsi (opsional)"
-          value={form.subtitle}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800"
-        />
-
-        <input
-          type="number"
-          name="amount"
-          placeholder="Jumlah (Rp)"
-          value={form.amount}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800"
-          required
-          min={0}
-        />
-
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-800"
-          required
-        />
-
-        {/* Type selector soft buttons */}
-        <div className="flex gap-4 justify-center mb-4">
-          <button
-            type="button"
-            onClick={() => handleTypeChange("income")}
-            className={clsx(
-              "flex items-center gap-2 px-6 py-2 rounded-full border font-semibold text-sm",
-              form.type === "income"
-                ? "bg-green-100 border-green-400 text-green-700 shadow"
-                : "bg-white border-gray-300 text-gray-600 hover:bg-green-50"
-            )}
-          >
-            <ArrowUpCircle
-              className={clsx(
-                "w-5 h-5",
-                form.type === "income" ? "text-green-600" : "text-gray-400"
-              )}
-            />
-            Income
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTypeChange("expense")}
-            className={clsx(
-              "flex items-center gap-2 px-6 py-2 rounded-full border font-semibold text-sm",
-              form.type === "expense"
-                ? "bg-red-100 border-red-400 text-red-700 shadow"
-                : "bg-white border-gray-300 text-gray-600 hover:bg-red-50"
-            )}
-          >
-            <ArrowDownCircle
-              className={clsx(
-                "w-5 h-5",
-                form.type === "expense" ? "text-red-600" : "text-gray-400"
-              )}
-            />
-            Expense
-          </button>
-        </div>
-
-        {/* Kategori visual grid */}
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Pilih Kategori</p>
-          <div className="grid grid-cols-3 gap-3">
-            {categoryIcons.map((cat) => (
+          {/* Type Toggle */}
+          <div className="flex items-center justify-between text-sm">
+            <label className="font-medium">Tipe Transaksi:</label>
+            <div className="flex gap-3">
               <button
-                key={cat.id}
                 type="button"
-                className={clsx(
-                  "flex flex-col items-center justify-center p-3 rounded-lg border text-gray-700 bg-white",
-                  form.category === cat.id
-                    ? "border-blue-500 ring-2 ring-blue-200"
-                    : "border-gray-200"
-                )}
-                onClick={() => handleCategoryChange(cat.id)}
+                onClick={() => handleChange("type", "income")}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  form.type === "income"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700"
+                }`}
               >
-                {cat.icon}
-                <span className="text-xs mt-1">{cat.label}</span>
+                Income
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => handleChange("type", "expense")}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  form.type === "expense"
+                    ? "bg-red-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700"
+                }`}
+              >
+                Expense
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Button Simpan */}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition"
-        >
-          Simpan Perubahan
-        </button>
+          {/* Category Select */}
+          <div className="text-sm">
+            <label className="block mb-1 font-medium">Kategori:</label>
+            <select
+              value={form.category}
+              onChange={(e) => handleChange("category", e.target.value)}
+              className="w-full px-3 py-2 border rounded dark:bg-gray-700"
+            >
+              {categories.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Button Hapus */}
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="w-full mt-2 bg-red-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-red-700 transition"
-        >
-          Hapus Transaksi
-        </button>
-      </form>
+          {/* Buttons */}
+          <div className="flex justify-between pt-3">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="text-red-600 text-sm font-semibold"
+            >
+              Hapus
+            </button>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-sm text-gray-500 dark:text-gray-300"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -12,9 +12,13 @@ import {
   TrainFront,
   ShoppingBag,
   HelpCircle,
+  Home,
+  Settings,
+  User,
 } from "lucide-react";
 import clsx from "clsx";
 import BottomNavBar from "../components/BottomNavBar";
+import EditTransaction from "./EditTransaction";
 
 type Transaction = {
   id: string;
@@ -32,8 +36,34 @@ const categoryIcons: Record<string, ReactNode> = {
   subscription: <CreditCard className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
   transport: <TrainFront className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
   shopping: <ShoppingBag className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
-  uncategories: <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  uncategorized: <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
 };
+
+const Sidebar = () => (
+  <aside className="hidden lg:flex flex-col w-64 h-screen bg-gray-100 dark:bg-gray-900 p-6 space-y-8">
+    <h2 className="text-2xl font-bold text-indigo-600">DuitKu</h2>
+    <nav className="flex flex-col space-y-4">
+      <a
+        href="#"
+        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
+      >
+        <Home size={20} /> Dashboard
+      </a>
+      <a
+        href="#"
+        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
+      >
+        <User size={20} /> Profile
+      </a>
+      <a
+        href="#"
+        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
+      >
+        <Settings size={20} /> Settings
+      </a>
+    </nav>
+  </aside>
+);
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
@@ -64,113 +94,134 @@ const Dashboard = () => {
     }
   }, [darkMode]);
 
-  const income = transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const expense = transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const income = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const expense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
   const balance = income - expense;
 
+  const handleDelete = (id: string) => {
+    const updatedList = transactions.filter((t) => t.id !== id);
+    setTransactions(updatedList);
+    localStorage.setItem("transactions", JSON.stringify(updatedList));
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white pb-20">
-      {/* Navbar */}
-      <header className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-        <h1 className="text-lg font-bold">
-          <span className="text-blue-500">Duit</span>
-          <span className="text-purple-500">Ku</span>
-        </h1>
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-            <Bell size={20} className="text-gray-700 dark:text-white" />
-          </button>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-          >
-            {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
-          </button>
-        </div>
-      </header>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <Sidebar />
 
-      {/* Credit Card */}
-      <div className="mx-4 my-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-6 shadow-lg relative overflow-hidden">
-        <div className="absolute top-4 left-6 text-sm text-white/90 font-medium">Welcome back</div>
+      <main className="flex-1 flex flex-col pb-20 lg:pb-0">
+        <header className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <h1 className="text-lg font-bold lg:hidden">
+            <span className="text-blue-500">Duit</span>
+            <span className="text-purple-500">Ku</span>
+          </h1>
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+              <Bell size={20} className="text-gray-700 dark:text-white" />
+            </button>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            >
+              {darkMode ? (
+                <Sun size={20} className="text-yellow-400" />
+              ) : (
+                <Moon size={20} className="text-gray-600" />
+              )}
+            </button>
+          </div>
+        </header>
 
-        <div className="mt-3">
-          <p className="text-base font-light text-white/90 mb-1">
-            {greeting}, <span className="font-medium">{name}</span>
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center justify-center mt-8">
-          <p className="text-3xl font-bold tracking-wide">Rp {balance.toLocaleString()}</p>
-          <p className="text-xs uppercase text-white/80 mt-1 tracking-widest">Total Balance</p>
-        </div>
-      </div>
-
-      {/* Income & Expense Cards */}
-      <div className="grid grid-cols-2 gap-4 px-4 mb-6">
-        <div className="rounded-xl p-4 bg-green-100 dark:bg-green-800 text-green-800 dark:text-white flex items-center gap-3">
-          <ArrowUpCircle className="w-5 h-5" />
-          <div>
-            <p className="text-sm font-medium">Income</p>
-            <p className="text-lg font-semibold">Rp {income.toLocaleString()}</p>
+        <div className="mx-4 my-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute top-4 left-6 text-sm text-white/90 font-medium">Welcome back</div>
+          <div className="mt-3">
+            <p className="text-base font-light text-white/90 mb-1">
+              {greeting}, <span className="font-medium">{name}</span>
+            </p>
+          </div>
+          <div className="flex flex-col items-center justify-center mt-8">
+            <p className="text-3xl font-bold tracking-wide">Rp {balance.toLocaleString()}</p>
+            <p className="text-xs uppercase text-white/80 mt-1 tracking-widest">Total Balance</p>
           </div>
         </div>
-        <div className="rounded-xl p-4 bg-red-100 dark:bg-red-800 text-red-800 dark:text-white flex items-center gap-3">
-          <ArrowDownCircle className="w-5 h-5" />
-          <div>
-            <p className="text-sm font-medium">Expense</p>
-            <p className="text-lg font-semibold">Rp {expense.toLocaleString()}</p>
+
+        <div className="grid grid-cols-2 gap-4 px-4 mb-6">
+          <div className="rounded-xl p-4 bg-green-100 dark:bg-green-800 text-green-800 dark:text-white flex items-center gap-3">
+            <ArrowUpCircle className="w-5 h-5" />
+            <div>
+              <p className="text-sm font-medium">Income</p>
+              <p className="text-lg font-semibold">Rp {income.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="rounded-xl p-4 bg-red-100 dark:bg-red-800 text-red-800 dark:text-white flex items-center gap-3">
+            <ArrowDownCircle className="w-5 h-5" />
+            <div>
+              <p className="text-sm font-medium">Expense</p>
+              <p className="text-lg font-semibold">Rp {expense.toLocaleString()}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Recent Transactions */}
-      <div className="px-4">
-        <h3 className="text-base font-semibold mb-3">Recent Transactions</h3>
-        <ul className="space-y-3">
-          {transactions.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada transaksi.</p>
-          ) : (
-            transactions.slice(0, 5).map((tx) => (
-              <li
-                key={tx.id}
-                onClick={() => setEditTx(tx)}
-                className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-gray-800 shadow cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  {categoryIcons[tx.category] || categoryIcons["uncategories"]}
-                  <div>
-                    <p className="text-sm font-semibold">{tx.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{tx.subtitle}</p>
+        <div className="px-4">
+          <h3 className="text-base font-semibold mb-3">Recent Transactions</h3>
+          <ul className="space-y-3">
+            {transactions.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada transaksi.</p>
+            ) : (
+              transactions.slice(0, 5).map((tx) => (
+                <li
+                  key={tx.id}
+                  onClick={() => setEditTx(tx)}
+                  className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-gray-800 shadow cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    {categoryIcons[tx.category] || categoryIcons["uncategorized"]}
+                    <div>
+                      <p className="text-sm font-semibold">{tx.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{tx.subtitle}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={clsx(
-                      "text-sm font-semibold",
-                      tx.type === "income" ? "text-green-500" : "text-red-500"
-                    )}
-                  >
-                    {tx.type === "income" ? "+" : "-"} Rp {tx.amount.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-400">{tx.date}</p>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
-
-      {/* Modal Edit */}
-      {editTx && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-lg space-y-4">
-            {/* ... modal content tetap sama seperti sebelumnya ... */}
-          </div>
+                  <div className="text-right">
+                    <p
+                      className={clsx(
+                        "text-sm font-semibold",
+                        tx.type === "income" ? "text-green-500" : "text-red-500"
+                      )}
+                    >
+                      {tx.type === "income" ? "+" : "-"} Rp {tx.amount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-400">{tx.date}</p>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
         </div>
-      )}
 
-      {/* Bottom Nav */}
-      <BottomNavBar />
+        {editTx && (
+          <EditTransaction
+            transaction={editTx}
+            onClose={() => setEditTx(null)}
+            onSave={(updatedTx) => {
+              const updatedList = transactions.map((t) =>
+                t.id === updatedTx.id ? updatedTx : t
+              );
+              setTransactions(updatedList);
+              localStorage.setItem("transactions", JSON.stringify(updatedList));
+              setEditTx(null);
+            }}
+            onDelete={handleDelete}
+          />
+        )}
+      </main>
+
+      {/* BottomNavBar hanya tampil di mobile */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+        <BottomNavBar />
+      </div>
     </div>
   );
 };

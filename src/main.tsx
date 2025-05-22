@@ -1,13 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext"; // kalau kamu gabung konteks
 import "./index.css";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <ThemeProvider>
+    <AuthProvider>
       <App />
-    </ThemeProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
