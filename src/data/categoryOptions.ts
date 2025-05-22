@@ -4,7 +4,6 @@ import {
   Briefcase,
   ShoppingBag,
   Wallet,
-  DollarSign,
   CreditCard,
   Tv,
   PiggyBank,
@@ -12,16 +11,14 @@ import {
   HelpCircle,
 } from "lucide-react";
 
-// src/data/categoryOptions.ts
-
 export const categoryOptions = [
-  { label: "Food", value: "food", icon: "utensils" },
-  { label: "Salary", value: "salary", icon: "briefcase" },
-  { label: "Shopping", value: "shopping", icon: "shoppingbag" },
-  { label: "Wallet", value: "wallet", icon: "wallet" },
-  { label: "Payment", value: "payment", icon: "creditcard" },
-  { label: "Subscription", value: "subscription", icon: "tv" },
-  { label: "Savings", value: "savings", icon: "piggybank" },
-  { label: "Transport", value: "transport", icon: "car" },
-  { label: "Uncategorized", value: "uncategorized", icon: "helpcircle" },
+  { label: "Food", value: "food", icon: Utensils },
+  { label: "Salary", value: "salary", icon: Briefcase },
+  { label: "Shopping", value: "shopping", icon: ShoppingBag },
+  { label: "Wallet", value: "wallet", icon: Wallet },
+  { label: "Payment", value: "payment", icon: CreditCard },
+  { label: "Subscription", value: "subscription", icon: Tv },
+  { label: "Savings", value: "savings", icon: PiggyBank },
+  { label: "Transport", value: "transport", icon: Car },
+  { label: "Uncategorized", value: "uncategorized", icon: HelpCircle },
 ];

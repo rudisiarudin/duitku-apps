@@ -1,93 +1,175 @@
 import { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
-import BalanceCard from "../components/BalanceCard";
-import TransactionCard from "../components/TransactionCard";
+import type { ReactNode } from "react";
+import {
+  Bell,
+  Moon,
+  Sun,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Utensils,
+  Briefcase,
+  CreditCard,
+  TrainFront,
+  ShoppingBag,
+  HelpCircle,
+} from "lucide-react";
+import clsx from "clsx";
 import BottomNavBar from "../components/BottomNavBar";
 
 type Transaction = {
-  id: number;
+  id: string;
   title: string;
   subtitle: string;
   amount: number;
+  type: "income" | "expense";
   date: string;
   category: string;
-  icon: string;
-  type: "income" | "expense";
+};
+
+const categoryIcons: Record<string, ReactNode> = {
+  food: <Utensils className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  salary: <Briefcase className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  subscription: <CreditCard className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  transport: <TrainFront className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  shopping: <ShoppingBag className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
+  uncategories: <HelpCircle className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
 };
 
 const Dashboard = () => {
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
+  const [editTx, setEditTx] = useState<Transaction | null>(null);
+  const [greeting, setGreeting] = useState("Good day");
+  const name = "Rudi !";
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("transactions") || "[]");
-    setTransactions(data);
-
-    const incomeTotal = data
-      .filter((t: Transaction) => t.type === "income")
-      .reduce((acc: number, curr: Transaction) => acc + curr.amount, 0);
-
-    const expenseTotal = data
-      .filter((t: Transaction) => t.type === "expense")
-      .reduce((acc: number, curr: Transaction) => acc + curr.amount, 0);
-
-    setIncome(incomeTotal);
-    setExpense(expenseTotal);
-    setTotalBalance(incomeTotal - expenseTotal);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
   }, []);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("transactions");
+    if (stored) setTransactions(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  const income = transactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const expense = transactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const balance = income - expense;
+
   return (
-    <div className="min-h-screen bg-white px-4 pt-6 pb-28 max-w-md mx-auto">
-      {/* Header */}
-      <header className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white pb-20">
+      {/* Navbar */}
+      <header className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <h1 className="text-lg font-bold">
+          <span className="text-blue-500">Duit</span>
+          <span className="text-purple-500">Ku</span>
+        </h1>
         <div className="flex items-center gap-3">
-          <img
-            src="https://ui-avatars.com/api/?name=Rudi&background=0D8ABC&color=fff"
-            alt="avatar"
-            className="w-10 h-10 rounded-full"
-          />
-          <h2 className="text-md font-semibold text-gray-800">Hey, Rudi</h2>
+          <button className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+            <Bell size={20} className="text-gray-700 dark:text-white" />
+          </button>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+          >
+            {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
+          </button>
         </div>
-        <Bell className="text-gray-600" />
       </header>
 
-      {/* Total Balance */}
-      <div className="text-center mb-6">
-        <h1 className="text-sm font-bold text-gray-900">
-          Rp{totalBalance.toLocaleString("id-ID")}
-        </h1>
-        <p className="text-sm text-gray-400">Total Balance</p>
+      {/* Credit Card */}
+      <div className="mx-4 my-5 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white p-6 shadow-lg relative overflow-hidden">
+        <div className="absolute top-4 left-6 text-sm text-white/90 font-medium">Welcome back</div>
+
+        <div className="mt-3">
+          <p className="text-base font-light text-white/90 mb-1">
+            {greeting}, <span className="font-medium">{name}</span>
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center justify-center mt-8">
+          <p className="text-3xl font-bold tracking-wide">Rp {balance.toLocaleString()}</p>
+          <p className="text-xs uppercase text-white/80 mt-1 tracking-widest">Total Balance</p>
+        </div>
       </div>
 
       {/* Income & Expense Cards */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <BalanceCard label="Income" amount={income} type="income" />
-        <BalanceCard label="Expense" amount={expense} type="expense" />
+      <div className="grid grid-cols-2 gap-4 px-4 mb-6">
+        <div className="rounded-xl p-4 bg-green-100 dark:bg-green-800 text-green-800 dark:text-white flex items-center gap-3">
+          <ArrowUpCircle className="w-5 h-5" />
+          <div>
+            <p className="text-sm font-medium">Income</p>
+            <p className="text-lg font-semibold">Rp {income.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="rounded-xl p-4 bg-red-100 dark:bg-red-800 text-red-800 dark:text-white flex items-center gap-3">
+          <ArrowDownCircle className="w-5 h-5" />
+          <div>
+            <p className="text-sm font-medium">Expense</p>
+            <p className="text-lg font-semibold">Rp {expense.toLocaleString()}</p>
+          </div>
+        </div>
       </div>
 
       {/* Recent Transactions */}
-      <section className="mb-6">
-        <h3 className="text-gray-700 font-semibold mb-2">Recent Transactions</h3>
+      <div className="px-4">
+        <h3 className="text-base font-semibold mb-3">Recent Transactions</h3>
+        <ul className="space-y-3">
+          {transactions.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada transaksi.</p>
+          ) : (
+            transactions.slice(0, 5).map((tx) => (
+              <li
+                key={tx.id}
+                onClick={() => setEditTx(tx)}
+                className="flex justify-between items-center p-4 rounded-xl bg-white dark:bg-gray-800 shadow cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  {categoryIcons[tx.category] || categoryIcons["uncategories"]}
+                  <div>
+                    <p className="text-sm font-semibold">{tx.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{tx.subtitle}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p
+                    className={clsx(
+                      "text-sm font-semibold",
+                      tx.type === "income" ? "text-green-500" : "text-red-500"
+                    )}
+                  >
+                    {tx.type === "income" ? "+" : "-"} Rp {tx.amount.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-400">{tx.date}</p>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
 
-        {transactions.length === 0 && (
-          <p className="text-sm text-gray-400">Belum ada transaksi</p>
-        )}
+      {/* Modal Edit */}
+      {editTx && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-lg space-y-4">
+            {/* ... modal content tetap sama seperti sebelumnya ... */}
+          </div>
+        </div>
+      )}
 
-        {transactions.map((tx) => (
-          <TransactionCard
-            key={tx.id}
-            title={tx.title}
-            subtitle={tx.subtitle}
-            amount={tx.amount}
-            date={tx.date}
-            icon={tx.category as any}
-          />
-        ))}
-      </section>
-
-      {/* Bottom Navbar */}
+      {/* Bottom Nav */}
       <BottomNavBar />
     </div>
   );

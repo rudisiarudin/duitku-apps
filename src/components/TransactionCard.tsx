@@ -1,68 +1,54 @@
-import {
-  Shirt,
-  ShoppingBag,
-  TrainFront,
-  Wallet,
-  Utensils,
-  Briefcase,
-  CreditCard,
-  Tag,
-  Pencil,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-
 type TransactionCardProps = {
-  id: string;
   title: string;
   subtitle: string;
   amount: number;
   date: string;
-  category: string;
-};
-
-const iconMap: Record<string, JSX.Element> = {
-  food: <Utensils className="text-pink-500" />,
-  salary: <Briefcase className="text-green-500" />,
-  subscription: <CreditCard className="text-purple-500" />,
-  shopping: <ShoppingBag className="text-orange-500" />,
-  transport: <TrainFront className="text-blue-500" />,
-  payment: <Wallet className="text-indigo-500" />,
-  clothing: <Shirt className="text-yellow-500" />,
-  uncategorized: <Tag className="text-gray-400" />,
+  icon: string;
+  onEdit?: () => void; // callback saat tombol edit ditekan
 };
 
 const TransactionCard = ({
-  id,
   title,
   subtitle,
   amount,
   date,
-  category,
+  icon,
+  onEdit,
 }: TransactionCardProps) => {
-  const isIncome = amount >= 0;
-  const color = isIncome ? "text-green-500" : "text-red-500";
-
   return (
-    <div className="flex justify-between items-center bg-white rounded-xl p-4 shadow mb-3">
+    <div className="transaction-card p-3 border rounded flex justify-between items-center mb-2">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-          {iconMap[category] || iconMap["uncategorized"]}
+        {/* Icon kategori */}
+        <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+          {/* Bisa pakai icon svg sesuai kategori */}
+          <img src={`/icons/${icon}.svg`} alt={icon} className="w-6 h-6" />
         </div>
+
         <div>
-          <p className="font-medium text-gray-800">{title}</p>
-          <p className="text-sm text-gray-400">{subtitle}</p>
+          <p className="font-semibold text-gray-800">{title}</p>
+          <p className="text-sm text-gray-500">{subtitle}</p>
+          <p className="text-xs text-gray-400">{date}</p>
         </div>
       </div>
-      <div className="text-right">
-        <p className={`font-semibold ${color}`}>
-          {isIncome ? "+" : "-"}Rp{Math.abs(amount).toLocaleString("id-ID")}
+
+      <div className="flex flex-col items-end gap-1">
+        <p
+          className={`font-semibold ${
+            amount >= 0 ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          Rp{amount.toLocaleString("id-ID")}
         </p>
-        <div className="flex items-center justify-end gap-2 text-sm text-gray-400">
-          <span>{date}</span>
-          <Link to={`/edit/${id}`}>
-            <Pencil size={16} className="hover:text-blue-500" />
-          </Link>
-        </div>
+
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            className="text-blue-500 hover:underline text-xs"
+            type="button"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );
