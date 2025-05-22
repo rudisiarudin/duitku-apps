@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+// src/components/EditTransaction.tsx
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { NumericFormat } from "react-number-format";
 
-type Transaction = {
+export type Transaction = {
   id: string;
   title: string;
   subtitle: string;
@@ -13,7 +14,7 @@ type Transaction = {
 };
 
 type Props = {
-  transaction: Transaction;
+  transaction: Transaction | null;
   onClose: () => void;
   onSave: (tx: Transaction) => void;
   onDelete: (id: string) => void;
@@ -29,7 +30,29 @@ const categories = [
 ];
 
 const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
-  const [form, setForm] = useState<Transaction>(transaction);
+  const [form, setForm] = useState<Transaction>({
+    id: transaction?.id || Date.now().toString(),
+    title: transaction?.title || "",
+    subtitle: transaction?.subtitle || "",
+    amount: transaction?.amount || 0,
+    type: transaction?.type || "expense",
+    date: transaction?.date || new Date().toISOString().slice(0, 10),
+    category: transaction?.category || "uncategorized",
+  });
+
+  useEffect(() => {
+    if (transaction) {
+      setForm({
+        id: transaction.id,
+        title: transaction.title,
+        subtitle: transaction.subtitle,
+        amount: transaction.amount,
+        type: transaction.type,
+        date: transaction.date,
+        category: transaction.category,
+      });
+    }
+  }, [transaction]);
 
   const handleChange = (field: keyof Transaction, value: string | number) => {
     setForm({ ...form, [field]: value });
@@ -37,6 +60,18 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.title.trim()) {
+      Swal.fire("Error", "Judul harus diisi", "error");
+      return;
+    }
+    if (form.amount <= 0) {
+      Swal.fire("Error", "Jumlah harus lebih dari 0", "error");
+      return;
+    }
+    if (!form.date) {
+      Swal.fire("Error", "Tanggal harus diisi", "error");
+      return;
+    }
     onSave(form);
   };
 
@@ -51,7 +86,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
       confirmButtonText: "Ya, hapus!",
       cancelButtonText: "Batal",
     }).then((result) => {
-      if (result.isConfirmed) {
+      if (result.isConfirmed && form.id) {
         onDelete(form.id);
         Swal.fire("Terhapus!", "Transaksi sudah dihapus.", "success");
         onClose();
@@ -62,7 +97,7 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96 shadow-lg space-y-4">
-        <h2 className="text-lg font-bold">Edit Transaksi</h2>
+        <h2 className="text-lg font-bold">{transaction ? "Edit Transaksi" : "Tambah Transaksi"}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             className="w-full px-3 py-2 border rounded dark:bg-gray-700"
@@ -145,15 +180,17 @@ const EditTransaction = ({ transaction, onClose, onSave, onDelete }: Props) => {
 
           {/* Buttons */}
           <div className="flex justify-between pt-3">
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="text-red-600 text-sm font-semibold"
-            >
-              Hapus
-            </button>
+            {transaction && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="text-red-600 text-sm font-semibold"
+              >
+                Hapus
+              </button>
+            )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 ml-auto">
               <button
                 type="button"
                 onClick={onClose}

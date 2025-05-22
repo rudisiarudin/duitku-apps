@@ -1,17 +1,14 @@
 // src/layout/Layout.tsx
-import { Outlet, useLocation } from "react-router-dom";
-import BottomNavBar from "../components/BottomNavBar";
+import React from "react";
 
-const Layout = () => {
-  const location = useLocation();
-  const hideNavbarOn = ["/splash", "/login"]; // atau halaman lain yg kamu inginkan
+interface LayoutProps {
+  onAddClick: () => void;
+}
 
-  return (
-    <div className="min-h-screen bg-white">
-      <Outlet />
-      {!hideNavbarOn.includes(location.pathname) && <BottomNavBar />}
-    </div>
-  );
+const Layout: React.FC<LayoutProps> = ({ onAddClick }) => {
+  // your layout content here, using onAddClick prop as needed
+
+  return <div>{/* layout content */}</div>;
 };
 
 export default Layout;

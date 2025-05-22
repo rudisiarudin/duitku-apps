@@ -1,5 +1,5 @@
 // src/components/BottomNavBar.tsx
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   BarChart2,
@@ -18,6 +18,7 @@ const navItems = [
 
 const BottomNavBar = ({ onAddClick }: { onAddClick: () => void }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg z-50">
@@ -29,7 +30,7 @@ const BottomNavBar = ({ onAddClick }: { onAddClick: () => void }) => {
             return (
               <li
                 key={label}
-                onClick={onAddClick}  // Ganti navigate(path) jadi onAddClick
+                onClick={onAddClick}
                 className={`relative -top-6 flex items-center justify-center cursor-pointer select-none rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-700`}
                 style={{ width: 64, height: 64 }}
                 title={label}
@@ -42,7 +43,7 @@ const BottomNavBar = ({ onAddClick }: { onAddClick: () => void }) => {
           return (
             <li
               key={label}
-              onClick={() => window.location.pathname !== path && (window.location.pathname = path)}
+              onClick={() => navigate(path)}
               className={`flex items-center justify-center cursor-pointer select-none transition-colors p-3 rounded-full ${
                 isActive
                   ? "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900"

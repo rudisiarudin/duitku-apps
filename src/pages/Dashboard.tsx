@@ -30,6 +30,10 @@ type Transaction = {
   category: string;
 };
 
+interface DashboardProps {
+  onAddClick: () => void;
+}
+
 const categoryIcons: Record<string, ReactNode> = {
   food: <Utensils className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
   salary: <Briefcase className="w-5 h-5 text-gray-500 dark:text-gray-300" />,
@@ -43,29 +47,20 @@ const Sidebar = () => (
   <aside className="hidden lg:flex flex-col w-64 h-screen bg-gray-100 dark:bg-gray-900 p-6 space-y-8">
     <h2 className="text-2xl font-bold text-indigo-600">DuitKu</h2>
     <nav className="flex flex-col space-y-4">
-      <a
-        href="#"
-        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
-      >
+      <a href="#" className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600">
         <Home size={20} /> Dashboard
       </a>
-      <a
-        href="#"
-        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
-      >
+      <a href="#" className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600">
         <User size={20} /> Profile
       </a>
-      <a
-        href="#"
-        className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600"
-      >
+      <a href="#" className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600">
         <Settings size={20} /> Settings
       </a>
     </nav>
   </aside>
 );
 
-const Dashboard = () => {
+const Dashboard: React.FC<DashboardProps> = ({ onAddClick }) => {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
@@ -148,25 +143,17 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 px-4 mb-6">
-          <div className="rounded-xl p-4 bg-green-100 dark:bg-green-800 text-green-800 dark:text-white flex items-center gap-3">
-            <ArrowUpCircle className="w-5 h-5" />
-            <div>
-              <p className="text-sm font-medium">Income</p>
-              <p className="text-lg font-semibold">Rp {income.toLocaleString()}</p>
-            </div>
-          </div>
-          <div className="rounded-xl p-4 bg-red-100 dark:bg-red-800 text-red-800 dark:text-white flex items-center gap-3">
-            <ArrowDownCircle className="w-5 h-5" />
-            <div>
-              <p className="text-sm font-medium">Expense</p>
-              <p className="text-lg font-semibold">Rp {expense.toLocaleString()}</p>
-            </div>
-          </div>
+        <div className="px-4 flex justify-between items-center mb-3">
+          <h3 className="text-base font-semibold">Recent Transactions</h3>
+          <button
+            onClick={onAddClick}
+            className="text-sm bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 transition"
+          >
+            + Add
+          </button>
         </div>
 
         <div className="px-4">
-          <h3 className="text-base font-semibold mb-3">Recent Transactions</h3>
           <ul className="space-y-3">
             {transactions.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada transaksi.</p>
@@ -218,9 +205,8 @@ const Dashboard = () => {
         )}
       </main>
 
-      {/* BottomNavBar hanya tampil di mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-        <BottomNavBar />
+        <BottomNavBar onAddClick={onAddClick} />
       </div>
     </div>
   );
